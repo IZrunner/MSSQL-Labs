@@ -1,0 +1,50 @@
+USE Phones_Repair_Service;
+
+--1.	Вибірка з таблиці без ключів та індексів--
+SELECT * FROM Slayer_Testaments;
+
+
+--2.	Вибірка з таблиці з первинним ключем та без фільтрів--
+SELECT * FROM Models;
+
+
+--3.	Вибірка з таблиці з первинним ключем та фільтром--
+SELECT * 
+FROM Models 
+WHERE model_code = 4;
+
+
+--4.	Фільтр по полю з некластерним індексом--
+SELECT * 
+FROM Models
+WHERE model_name = '6s';
+
+
+--5.	Індекс із включенними полями--
+SELECT model_name, model_code, model_brand_code 
+FROM Models
+WHERE model_name = '6s';
+
+
+--6.1	 Складений індекс (індекс використано)--
+SELECT * 
+FROM Models
+WHERE model_name = '6s';
+
+
+--6.2	 Складений індекс (індекс не використано)--
+SELECT * 
+FROM Models
+WHERE model_brand_code = 2;
+
+
+--7.1	 Неоптимальний індекс (невикористаний)--
+SELECT * 
+FROM Models
+WHERE model_name like '%No%';
+
+
+--7.2	 Неоптимальний індекс (використаний примусово)--
+SELECT * 
+FROM Models
+WHERE model_name like 'Note';

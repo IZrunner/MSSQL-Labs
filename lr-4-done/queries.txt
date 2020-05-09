@@ -1,0 +1,91 @@
+USE Phones_Repair_Service;
+
+--Модель із максимальною кількістю пристроїв на обліку (назва моделі)--
+SELECT MostFrequentValues.device_model_code, MostFrequentValues.models_amount, Models.model_name
+FROM
+	(
+		SELECT TOP 1 device_model_code, COUNT(device_model_code) AS models_amount
+		FROM Devices
+		GROUP BY device_model_code
+		ORDER BY COUNT(device_model_code) DESC
+	) AS MostFrequentValues
+INNER JOIN Models
+ON MostFrequentValues.device_model_code = Models.model_code;
+
+
+--Кількість моделей по брендах, що мають діагональ від 5 до 6 (назва бренду та кількість)--
+SELECT SourceTable.brand_name, COUNT(SourceTable.screen_size) as devices_avaliable
+FROM
+(
+	SELECT brand_name, screen_size
+	FROM Models
+	RIGHT JOIN Brands
+	ON Models.model_brand_code = Brands.brand_code
+	WHERE screen_size in(5,6)
+	) AS SourceTable
+GROUP BY brand_name;
+
+
+
+--Бренди, що не мають пристроїв із діагоналлю менше 7 (назви без повторень)--
+--Загальний список моделей із брендами--
+SELECT ModelsList.model_name, ModelsList.screen_size, Brands.brand_name
+FROM
+	(
+		SELECT * 
+		FROM Models
+		WHERE screen_size < 7
+	) AS ModelsList
+INNER JOIN Brands
+ON ModelsList.model_brand_code = Brands.brand_code;
+
+--Той самий список, але з унікальними брендами--
+SELECT DISTINCT Brands.brand_name
+FROM
+	(
+		SELECT * 
+		FROM Models
+		WHERE screen_size < 7
+	) AS ModelsList
+INNER JOIN Brands
+ON ModelsList.model_brand_code = Brands.brand_code;
+
+--З діагоналлю більше 7--
+SELECT DISTINCT Brands.brand_name
+FROM
+	(
+		SELECT * 
+		FROM Models
+		WHERE screen_size > 7
+	) AS ModelsList
+INNER JOIN Brands
+ON ModelsList.model_brand_code = Brands.brand_code;
+
+
+--Конструкція «offset-fetch»--
+SELECT Devices.device_model_code, SourceTable.brand_name, SourceTable.model_name
+FROM
+(
+	SELECT brand_name, model_name, screen_size, model_code
+	FROM Models
+	RIGHT JOIN Brands
+	ON Models.model_brand_code = Brands.brand_code
+	) AS SourceTable
+INNER JOIN Devices
+ON SourceTable.model_code = Devices.device_model_code
+ORDER BY device_model_code
+OFFSET 8 ROWS
+FETCH FIRST 3 ROWS ONLY;
+
+
+--Поєднання більш, ніж 2-х таблиць--
+SELECT Devices.device_model_code, SourceTable.brand_name, SourceTable.model_name
+FROM
+(
+	SELECT brand_name, model_name, screen_size, model_code
+	FROM Models
+	RIGHT JOIN Brands
+	ON Models.model_brand_code = Brands.brand_code
+	) AS SourceTable
+INNER JOIN Devices
+ON SourceTable.model_code = Devices.device_model_code;

@@ -1,0 +1,62 @@
+USE Phones_Repair_Service;
+
+--OUTER APPLY--
+SELECT mdls.model_name, brnds.brand_name
+FROM Models mdls
+OUTER APPLY Brands brnds;
+
+
+--RANKING FUNCTION--
+SELECT ROW_NUMBER() 
+OVER
+	(
+		ORDER BY screen_size
+	) AS screen_order,
+model_name, screen_size
+FROM Models;
+
+--MIXED FUNCTION--
+SELECT mdls.model_name, MIN(mdls.screen_size) min_screen, AVG(mdls.screen_size) some_average,
+ROW_NUMBER() OVER(PARTITION BY MIN(mdls.screen_size) ORDER BY AVG(mdls.screen_size)) some_order
+FROM Models mdls
+GROUP BY mdls.model_name
+ORDER BY 2;
+
+
+--WINDOW FUNCTION--
+SELECT model_name, screen_size, AVG(screen_size)
+OVER
+	(
+	PARTITION BY model_brand_code
+	ORDER BY model_code
+	ROWS between UNBOUNDED PRECEDING and CURRENT ROW
+	) 
+FROM Models;
+
+
+--PIVOT--
+SELECT 'screen_size' AS models_alias,
+[6s], [S 20]
+FROM 
+	(
+		SELECT model_name, screen_size 
+		FROM Models
+	) AS SourceTable
+PIVOT 
+(
+	MAX(screen_size)
+	FOR model_name
+	IN ([6s], [S 20])
+) AS PivotTable;
+
+
+--CUBE--
+SELECT model_name, model_code, MAX(screen_size) max_screen_size
+FROM Models
+GROUP BY CUBE(model_name, model_code);
+
+
+--GROUPING SETS--
+SELECT model_name, model_code, MAX(screen_size) max_screen_size
+FROM Models
+GROUP BY GROUPING SETS(model_name, model_code), (model_code);

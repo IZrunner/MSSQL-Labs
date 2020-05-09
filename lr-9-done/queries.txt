@@ -1,0 +1,70 @@
+USE Phones_Repair_Service;
+
+--1.	Об'явлення, ініціалізація та вивід змінної за доп. SET та SELECT--
+DECLARE @brandsSample VARCHAR(15) = 'Xiaomi', @modelsSample VARCHAR(15) = 'Mi 10';
+PRINT @brandsSample PRINT @modelsSample;
+SELECT @brandsSample, @modelsSample;
+
+
+--2.	Об'явлення змінної за запитом--
+DECLARE @brandsSample VARCHAR(15);
+SELECT @brandsSample = brand_name FROM Brands;
+PRINT @brandsSample;
+SELECT @brandsSample;
+
+
+--3.	Умовний оператор із циклом--
+DECLARE @freeWorkingPlace INT, @workerName VARCHAR(20), 
+		@workerLastName VARCHAR(20), @counter INT = 0;
+SELECT @freeWorkingPlace = count(worker_name) FROM Workers;
+	IF @freeWorkingPlace < 5 --змінити значення для перевірки умови
+		WHILE @counter < 5
+			BEGIN				
+				SELECT @workerName = worker_name FROM Workers WHERE worker_id = @counter + 1;
+				SELECT @workerLastName = worker_last_name FROM Workers WHERE worker_id = @counter + 1;
+				PRINT @workerName PRINT @workerlastName;
+				SELECT @workerName, @workerLastName;
+				SET @counter = @counter + 1;
+					IF @counter + 1 > @freeWorkingPlace BREAK;
+			END
+	ELSE
+		PRINT 'No job avaliable for you'
+
+
+--4.	try...catch--
+DECLARE @workerName VARCHAR(15), @workerLastName VARCHAR(15);
+
+SELECT @workerName = worker_name 
+FROM Workers
+WHERE worker_id = 3;
+
+BEGIN TRY
+	SELECT @workerLastName = worker_last_name 
+	FROM Workers
+	WHERE worker_name = @workerName and worker_id = @workerName;
+END TRY
+
+BEGIN CATCH
+	PRINT '<FATAL ERROR!!!> 
+		Conversion failed when converting the varchar value to data type int
+	<FATAL ERROR!!!/> '
+END CATCH
+
+
+--4.	Dynamic try...catch--
+DECLARE @workerName VARCHAR(15), @workerLastName VARCHAR(15);
+
+BEGIN TRY
+	EXEC
+	(
+		'SELECT' + @workerLastName + '=' + 'worker_last_name + 
+		FROM Workers
+		WHERE + worker_name = ' + @workerName + 'and worker_id = ' + @workerName + ';'
+	)
+END TRY
+
+BEGIN CATCH
+	PRINT '<FATAL ERROR!!!> 
+		Conversion failed when converting the varchar value to data type int
+	<FATAL ERROR!!!/> '
+END CATCH

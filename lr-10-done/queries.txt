@@ -1,0 +1,74 @@
+USE Phones_Repair_Service;
+
+--1.	Курсор + update--
+IF COL_LENGTH ('Workers', 'workers_retire_age') IS NULL --окремий сценарій
+BEGIN
+	ALTER TABLE Workers
+	ADD workers_retire_age int;
+END;
+
+USE Phones_Repair_Service;
+
+DECLARE 
+@retire_age INT = 54, @worker_id INT, @worker_last_name VARCHAR(40);
+
+DECLARE workers_data_set CURSOR
+FOR 
+	SELECT 
+	worker_id, worker_last_name
+	FROM Workers;
+ 
+OPEN workers_data_set;
+ 
+FETCH NEXT FROM workers_data_set 
+INTO @worker_id, @worker_last_name;
+ 
+WHILE @@FETCH_STATUS = 0
+    BEGIN        
+		UPDATE Workers SET workers_retire_age = @retire_age WHERE worker_id = @worker_id;
+        FETCH NEXT FROM workers_data_set INTO 
+        @worker_id, @worker_last_name;
+    END;
+ 
+CLOSE workers_data_set;
+DEALLOCATE workers_data_set;
+
+
+--2.	Курсор + current of--
+UPDATE Workers SET workers_retire_age = 0;
+
+DECLARE 
+@retire_age INT = 54, @worker_id INT, @worker_last_name VARCHAR(40);
+
+DECLARE workers_data_set CURSOR
+FOR 
+	SELECT 
+	worker_id, worker_last_name
+	FROM Workers
+	FOR update
+	OF workers_retire_age;
+ 
+OPEN workers_data_set;
+ 
+FETCH NEXT FROM workers_data_set 
+INTO @worker_id, @worker_last_name;
+ 
+WHILE @@FETCH_STATUS = 0
+    BEGIN        
+		UPDATE Workers SET workers_retire_age = @retire_age WHERE CURRENT OF workers_data_set;
+        FETCH NEXT FROM workers_data_set INTO 
+        @worker_id, @worker_last_name;
+    END;
+ 
+CLOSE workers_data_set;
+DEALLOCATE workers_data_set;
+
+
+--3.	UPDATE без курсору--
+UPDATE Workers SET worker_retire_age = 0;
+UPDATE Workers SET worker_retire_age = 
+(
+	SELECT COUNT(worker_id) + 54 FROM Workers 
+)
+
+SELECT worker_name, worker_last_name, worker_retire_age FROM Workers;

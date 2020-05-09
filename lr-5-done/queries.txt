@@ -1,0 +1,84 @@
+USE Phones_Repair_Service;
+
+--Усі моделі Xiaomi
+SELECT Models.model_name 
+FROM Models 
+WHERE Models.model_brand_code =
+	(
+		SELECT brand_code 
+		FROM Brands
+		WHERE brand_code = 3
+	);
+	
+	
+--Модель із максимальною кількістю пристроїв на обліку (назва моделі)--
+SELECT MostFrequentValues.device_model_code, MostFrequentValues.models_amount, Models.model_name
+FROM
+	(
+		SELECT TOP 1 device_model_code, COUNT(device_model_code) AS models_amount
+		FROM Devices
+		GROUP BY device_model_code
+		ORDER BY COUNT(device_model_code) DESC
+	) AS MostFrequentValues
+INNER JOIN Models
+ON MostFrequentValues.device_model_code = Models.model_code;
+
+
+--Усі моделі разом із макс. діагоналлю екрану--
+SELECT model_name, screen_size,
+	(
+		SELECT MAX(screen_size)
+		FROM Models
+	) AS MaxScreenSize
+FROM Models;
+
+
+--Змінні--
+DECLARE @target_brand VARCHAR(15) = 'Samsung'
+SELECT ModelsList.model_name, ModelsList.model_brand_code, Brands.brand_code, Brands.brand_name FROM 
+	(
+		SELECT * FROM Models
+	) AS ModelsList
+INNER JOIN Brands
+ON ModelsList.model_brand_code = Brands.brand_code
+WHERE Brands.brand_name = 'Samsung';
+
+
+--Таблиця пристроїв з діагоналлю 6--
+
+SELECT model_name, model_brand_code
+INTO #SixInchScreenDevices
+FROM Models
+WHERE screen_size = 6;
+
+SELECT * FROM #SixInchScreenDevices;
+
+
+--Усі моделі разом з ім'ям бренду--
+WITH DevicesList AS
+	(
+		SELECT device_serial_number, device_model_code
+		FROM Devices
+	)
+SELECT Brands.brand_name, model_name, model_code
+FROM Models
+INNER JOIN Brands
+ON model_brand_code = brand_code;
+
+
+--Кількість пристроїв кожного бренду--
+CREATE VIEW SixInchScreenDevices
+AS
+SELECT Brands.brand_name, model_name, model_code
+FROM Models
+INNER JOIN Brands
+ON Brands.brand_code = model_brand_code;
+
+
+SELECT brand_name, count(brand_name) 
+FROM SixInchScreenDevices
+INNER JOIN Devices
+ON SixInchScreenDevices.model_code = Devices.device_model_code
+GROUP BY brand_name;
+
+DROP VIEW SixInchScreenDevices;
