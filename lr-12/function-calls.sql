@@ -14,6 +14,10 @@ DECLARE @clientName VARCHAR(20) = 'Mick', @modelCode int = 6;
 --	SELECT devices_available FROM dbo.fn_countDevicesByModels(@modelCode);
 
 
+--Multi-statement function call
+--	SELECT * FROM dbo.fn_getAllDevicesByModel(@modelCode);
+
+
 --Function used in FROM statement
 /*
 	SELECT device_code, device_serial_number
@@ -29,11 +33,23 @@ DECLARE @clientName VARCHAR(20) = 'Mick', @modelCode int = 6;
 */
 
 
---Function used in GROUP BY statement
+--Function used in GROUP BY statement + function used in subquery
 /*
 	SELECT MAX(device_serial_number), device_model_code
 	FROM Devices
 	INNER JOIN Models
 	ON device_model_code = model_code
 	GROUP BY device_model_code HAVING MIN(device_code) > (SELECT min_code FROM dbo.fn_getDeviceModelCode());
+*/
+
+
+--Function as subquery call
+
+
+--Function as part of CROSS APPLY
+/*
+	SELECT aliasModels.model_name, aliasDevices.devices_available   
+	FROM Models aliasModels
+	CROSS APPLY
+	dbo.fn_countDevicesByModels(@modelCode) aliasDevices;
 */

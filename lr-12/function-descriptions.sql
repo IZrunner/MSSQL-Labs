@@ -1,4 +1,4 @@
---Scalar function with parameter (1)
+--Scalar function (1) with parameter
 /*
 	CREATE FUNCTION dbo.fn_getClientMail(@clientName VARCHAR(20))
 	RETURNS VARCHAR(50)
@@ -13,7 +13,7 @@
 */
 
 
---In-line function with parameter (1)
+--In-line function (1) with parameter
 /*
 	CREATE FUNCTION dbo.fn_countDevicesByModels(@modelCode INT)
 	RETURNS TABLE
@@ -24,7 +24,7 @@
 */
 
 
---In-line function with parameter (2)
+--In-line function (2) with parameter
 /*
 	CREATE FUNCTION dbo.fn_identidyDevicesByModels(@modelCode INT)
 	RETURNS TABLE
@@ -35,7 +35,7 @@
 */
 
 
---In-line function with parameter (3)
+--In-line function (3)
 /*
 	CREATE FUNCTION dbo.fn_getDeviceModelCode()
 	RETURNS TABLE
@@ -43,3 +43,36 @@
 	RETURN SELECT MIN(device_model_code) AS min_code 
 		FROM Devices
 */	
+
+
+--Multi-statement function (1)
+/*
+	CREATE FUNCTION dbo.fn_getAllDevicesByModel(@modelCode INT)
+	RETURNS @devicesList TABLE (serial_number VARCHAR(10), model_code INT)
+	AS
+	BEGIN
+		DECLARE @varSerialNumber VARCHAR(10), @varModelCode INT
+	
+		DECLARE cursorModelsList CURSOR LOCAL DYNAMIC
+		FOR 
+			SELECT device_serial_number, device_model_code
+			FROM Devices
+			WHERE device_model_code = @modelCode
+	
+		OPEN cursorModelsList
+	
+		FETCH NEXT FROM cursorModelsList 
+		INTO @varSerialNumber, @varModelCode
+
+		WHILE @@FETCH_STATUS = 0
+			BEGIN
+				INSERT INTO @devicesList(serial_number, model_code)
+				VALUES(@varSerialNumber, @varModelCode)	
+				FETCH NEXT FROM cursorModelsList INTO 
+				@varSerialNumber, @varModelCode
+			END
+		CLOSE cursorModelsList
+		DEALLOCATE cursorModelsList
+		RETURN
+	END
+*/
